@@ -7,7 +7,15 @@ meta:
 build:
   skip: false
   additionalCommands: |
+    # Очистим кэш и предыдущие билды
+    rm -rf dist node_modules
     npm ci
+
+    # Диагностика: выведем кусок файлов, чтобы убедиться что Amvera берет актуальный код
+    echo "==== HEAD src/api.js ====" && head -n 20 src/api.js || true
+    echo "==== HEAD src/App.jsx ====" && head -n 20 src/App.jsx || true
+
+    # Сборка с нужной переменной
     npm run build:prod
 
 run:
