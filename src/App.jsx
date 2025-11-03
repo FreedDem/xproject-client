@@ -11,10 +11,10 @@ export default function App() {
 
   // ======= ЛОГИ для отладки окружения =======
   useEffect(() => {
-    console.log('[APP] import.meta.env.MODE =', import.meta.env?.MODE);
-    console.log('[APP] import.meta.env.VITE_API_BASE =', import.meta.env?.VITE_API_BASE);
-    console.log('[APP] window.location.origin =', window.location.origin);
-  }, []);
+    console.log('[APP] import.meta.env.MODE =', import.meta.env?.MODE)
+    console.log('[APP] import.meta.env.VITE_API_BASE =', import.meta.env?.VITE_API_BASE)
+    console.log('[APP] window.location.origin =', window.location.origin)
+  }, [])
   // ==========================================
 
   return (
@@ -24,9 +24,10 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/tours" element={<Tours />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="*" element={<Navigate to="/" />} />
           <Route path="/tour/:slug" element={<TourPage />} />
+          <Route path="/admin" element={<Admin />} />
+          {/* catch-all обязательно последним */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
       <Footer />
