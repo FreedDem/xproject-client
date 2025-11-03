@@ -1,0 +1,90 @@
+.tourGallery {
+  margin-top: 16px;
+}
+
+.tourGallery .grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: repeat(2, 160px);
+  gap: 6px;
+}
+
+.tourGallery .cell {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.tourGallery .cell.big {
+  grid-row: span 2;
+}
+
+.tourGallery .cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .3s ease;
+}
+
+.tourGallery .cell:hover img {
+  transform: scale(1.03);
+}
+
+.tourGallery .more {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.45);
+  color: #fff;
+  font-size: 28px;
+  font-weight: 700;
+  backdrop-filter: blur(2px);
+}
+
+/* Lightbox */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.lightbox img.full {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.4);
+}
+
+.lightbox .nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 48px;
+  color: #fff;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 16px;
+  user-select: none;
+}
+
+.lightbox .nav.prev { left: 10px; }
+.lightbox .nav.next { right: 10px; }
+
+.lightbox .close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  font-size: 40px;
+  color: #fff;
+  background: none;
+  border: none;
+  cursor: pointer;
+}

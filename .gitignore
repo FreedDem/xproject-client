@@ -1,0 +1,40 @@
+# Node dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Production build output
+dist/
+build/
+*.local
+
+# Temp / cache
+.cache/
+vite.config.ts.timestamp-*
+vite.config.js.timestamp-*
+vite-plugin-*
+.vite/
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Test / coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# Editor / OS junk
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Misc
+*.swp
+*.swo

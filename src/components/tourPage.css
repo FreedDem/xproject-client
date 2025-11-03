@@ -1,0 +1,280 @@
+:root{
+  --brand:#5c6cff;
+  --brand-ink:#2f3aff;
+  --ink:#0f1115;
+  --muted:#6b7280;
+  --paper:#fff;
+  --panel:#f7f8ff;
+  --line:rgba(0,0,0,.08);
+}
+
+.wrap{max-width:1160px;margin:0 auto;padding:0 16px;}
+.tourp{padding:16px 0 32px;}
+
+/* top grid */
+.topGrid{display:grid;grid-template-columns:2fr 1fr;gap:18px;align-items:start;}
+.mediaCard{display:flex;flex-direction:column;gap:8px;}
+.mediaMain{position:relative;border-radius:16px;overflow:hidden;background:#eaeefb;aspect-ratio:16/9;}
+.mediaMain img{width:100%;height:100%;object-fit:cover;display:block;}
+.mediaMain::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.55) 95%);pointer-events:none;}
+.mediaTitle{position:absolute;left:18px;right:18px;bottom:14px;color:#fff;z-index:2;text-shadow:0 2px 8px rgba(0,0,0,.35);}
+.mediaTitle h1{margin:0;font-size:28px;line-height:1.25;font-weight:800;}
+.tags{margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;}
+.tags span{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);padding:4px 8px;border-radius:8px;font-weight:600;font-size:13px}
+
+.thumbGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.thumb{border-radius:12px;overflow:hidden;aspect-ratio:4/3;background:#eef0ff;display:flex;align-items:center;justify-content:center;color:#97a1c0;font-weight:700}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.ph{color:#97a1c0;display:flex;align-items:center;justify-content:center}
+
+/* booking card */
+.bookCard{
+  position: static;          /* было: sticky */
+  top: auto;                 /* убрать привязку к верху */
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.05);
+}
+
+.bookCard.fullWidth{
+  margin: 12px 0 18px;       /* немного воздуха сверху/снизу */
+}
+
+.btnPrimary{ width:100%; padding:12px 14px; border:0; border-radius:10px; background:var(--brand); color:#fff; font-weight:700; cursor:not-allowed; margin-bottom:8px; }
+.btnSecondary{ display:inline-block; text-align:center; padding:10px 12px; border:1px solid var(--line); border-radius:10px; color:var(--ink); text-decoration:none; }
+
+/* cards / sections */
+.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:18px;}
+h2{margin:0 0 8px;}
+.lead{margin:6px 0 0;line-height:1.75;color:#333}
+.lead.clamp{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;}
+.linkBtn{margin-top:8px;background:none;border:0;color:var(--brand);font-weight:700;cursor:pointer;padding:0;}
+
+/* accordion */
+.accItem{border:1px solid #ececf4;border-radius:10px;margin:10px 0;}
+.accItem summary{cursor:pointer;display:flex;gap:10px;align-items:center;padding:10px;font-weight:700;list-style:none;}
+.accItem summary::-webkit-details-marker{display:none;}
+.accItem .dnum{color:var(--brand)}
+.accItem .dttl{font-weight:700}
+.accItem .prev{margin-left:auto;color:var(--muted);font-weight:500;max-width:48%;text-align:right;}
+.accItem[open] .prev{display:none;}
+.accItem .dhtml{padding:0 12px 12px 12px;color:#333;line-height:1.7}
+
+/* lists (wide, под днями) */
+.listWide{padding-top:18px;}
+.listWide h3{margin:0 0 6px;}
+.list{margin:8px 0 0 18px;line-height:1.7}
+
+/* responsive */
+@media (max-width: 980px){
+  .topGrid{grid-template-columns:1fr;}
+  .accItem .prev{max-width:60%;}
+}
+@media (max-width: 640px){
+  .mediaTitle h1{font-size:22px}
+  .accItem .prev{display:none;}
+}
+
+/* ====== row с ценой, датами и кнопкой ====== */
+.bookRow{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:20px 0;
+  flex-wrap:wrap;                 /* даты переносятся на новые строки */
+}
+
+/* Цена — не сжимается и не переносится */
+.priceTag{
+  background:#ffd84a;
+  color:#111;
+  font-weight:800;
+  font-size:16px;
+  padding:6px 12px;
+  border-radius:8px;
+  white-space:nowrap;             /* запрет переноса внутри цены */
+  flex:0 0 auto;                  /* фиксированный размер, не сжимать */
+  flex-shrink:0;
+}
+
+/* Кнопка бронирования — фиксированная */
+.btnBook{
+  background:var(--brand);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  font-weight:700;
+  font-size:15px;
+  padding:8px 16px;
+  cursor:pointer;
+  transition:background .25s ease, transform .05s ease;
+  flex:0 0 auto;                  /* не сжимать */
+}
+.btnBook:hover{ background:var(--brand-ink); }
+.btnBook:active{ transform:translateY(1px); }
+
+/* Адаптив — чтобы на телефоне не ломалось */
+@media (max-width: 600px){
+  .bookRow{gap:8px}
+}
+
+/* Компактный выбор дат рядом с кнопкой (не используется, но оставим) */
+.datePick{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 8px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:8px;
+  white-space:nowrap;
+}
+.datePick > span{
+  font-size:12px;
+  font-weight:800;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.02em;
+}
+.datePick select{
+  border:0;
+  outline:none;
+  background:transparent;
+  font:inherit;
+  color:#111;
+  max-width:360px;
+}
+@media (max-width: 600px){
+  .datePick{flex:1}
+  .datePick select{max-width:100%}
+}
+
+/* Все даты — чипы, занимают оставшееся место и переносятся */
+.dateChips{
+  display:flex;
+  flex-wrap:wrap;                 /* перенос строк */
+  gap:8px 10px;
+  margin:2px 0;
+  padding:0;
+  flex:1 1 420px;                 /* занимают «свободное» место */
+  min-width:260px;                /* но не схлопываются */
+  overflow:visible;
+}
+
+.dateChip{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:999px;
+  white-space:nowrap;             /* внутри чипа не переносим */
+  font-weight:700;
+  font-size:13px;
+  flex:0 0 auto;                  /* чипы не растягиваются */
+}
+
+.dateChip .rng{color:#111; font-weight:700}
+.dateChip .seats{color:var(--muted); font-weight:800}
+.dateChip.low .seats{color:#B91C1C}
+
+/* На узких экранах даты на отдельной строке */
+@media (max-width: 600px){
+  .dateChips{flex-basis:100%; min-width:100%}
+}
+
+/* === Booking modal dialog === */
+.modalOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 60;
+  animation: modalFade .12s ease-out;
+}
+
+.modalCard{
+  width: 100%;
+  max-width: 560px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.15);
+  padding: 18px;
+  animation: modalSlide .18s ease-out;
+}
+
+/* Форма */
+.bookForm{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bookForm label{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.bookForm input,
+.bookForm select,
+.bookForm textarea{
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  outline: none;
+  background: #fff;
+}
+.bookForm textarea{ resize: vertical; }
+
+/* Подсказки и ошибки */
+.hint{ margin-left: 8px; font-size: 12px; font-weight: 700; color: var(--muted); }
+.formError{ color:#B91C1C; font-weight: 700; margin-top: 4px; }
+
+/* Кнопки внутри модалки — не на всю ширину */
+.modalCard .btnPrimary,
+.modalCard .btnSecondary{
+  width: auto;
+}
+.btnPrimary:disabled{ opacity: .6; cursor: not-allowed; }
+
+/* Действия формы */
+.formActions{
+  margin-top: 6px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* Успех */
+.successBlock .lead{
+  margin: 8px 0 0;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* Небольшая анимация появления */
+@keyframes modalFade{
+  from{ opacity: 0; } to{ opacity: 1; }
+}
+@keyframes modalSlide{
+  from{ transform: translateY(6px); opacity: .96; }
+  to{ transform: translateY(0); opacity: 1; }
+}
+
+/* Мобильные правки */
+@media (max-width: 520px){
+  .modalCard{ padding: 16px; border-radius: 14px; }
+  .formActions{ justify-content: stretch; }
+  .modalCard .btnPrimary,
+  .modalCard .btnSecondary{ flex: 1 1 0; text-align: center; }
+}

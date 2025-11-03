@@ -1,0 +1,251 @@
+/* === Light palette (brand red) === */
+:root{
+  /* Core */
+  --bg:          #ffffff;    /* page background */
+  --bg-soft:     #F9FAFB;    /* softer surface */
+  --card:        #ffffff;    /* card surface */
+  --text:        #0F172A;    /* slate-900 */
+  --muted:       #6B7280;    /* slate-500 */
+
+  /* Brand (red) */
+  --brand-50:    #FFF3F3;
+  --brand-100:   #FFE3E3;
+  --brand-200:   #FFC4C4;
+  --brand-400:   #FF6A6A;
+  --brand:       #D61F1F;    /* primary */
+  --brand-600:   #B91A1A;
+  --brand-700:   #991616;
+
+  /* Accent (optional secondary) */
+  --accent:      #00B3C6;
+
+  /* Lines & chips */
+  --chip:        #F3F4F6;    /* slate-100 */
+  --border:      #E5E7EB;    /* slate-200 */
+
+  /* States */
+  --success:     #16A34A;
+  --warning:     #F59E0B;
+  --danger:      #EF4444;
+
+  /* Hero gradient — мягкий «air» под красный бренд */
+  --gradient:
+    radial-gradient(800px 400px at 10% -10%, rgba(214,31,31,.10), transparent 60%),
+    radial-gradient(800px 400px at 90% -10%, rgba(255,106,106,.12), transparent 60%),
+    linear-gradient(180deg, #FFF8F8 0%, #FFFFFF 40%, #FFFFFF 100%);
+}
+
+/* Base resets */
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,Segoe UI,Arial;
+}
+
+/* Layout */
+.container{max-width:1200px;margin:0 auto;padding:24px}
+.section{padding:56px 0}
+.section.tight{padding:28px 0}
+.section.bordered{border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+
+/* Navbar (brand) */
+.navbar{
+  position:sticky;top:0;z-index:50;
+  background:var(--brand);
+  color:#fff;
+  border-bottom:0;
+}
+.nav-inner{display:flex;gap:24px;align-items:center;justify-content:space-between}
+.logo{font-weight:900;text-decoration:none;color:#fff;letter-spacing:.2px}
+
+/* New logo wrap (used in updated Navbar) */
+.logoWrap{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff}
+.logoMark{width:32px;height:32px;border-radius:8px;background:#fff;display:grid;place-items:center;overflow:hidden}
+.logoMark img{width:100%;height:100%;object-fit:cover}
+.brandName{font-weight:700;font-size:18px;letter-spacing:.2px}
+
+/* Nav links in brand header */
+.navbar nav a{
+  color:#fff;text-decoration:none;margin-left:16px;
+  padding:10px 12px;border-radius:10px;opacity:.9;transition:.2s
+}
+.navbar nav a:hover{opacity:1;background:rgba(255,255,255,.12)}
+.navbar nav a.active{opacity:1;font-weight:600;background:rgba(255,255,255,.16)}
+
+/* Hero */
+.hero{padding:88px 0;background:var(--gradient)}
+.hero h1{font-size:48px;line-height:1.1;margin:0 0 16px;color:var(--brand-700)}
+.hero p{color:var(--muted);max-width:640px;margin:0 0 24px}
+
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:12px 18px;border-radius:12px;
+  background:var(--brand);color:#ffffff;
+  text-decoration:none;font-weight:800;border:none;cursor:pointer;
+  transition:filter .15s ease, transform .1s ease
+}
+.btn:hover{filter:brightness(0.96)}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{
+  background:#fff;color:var(--brand);
+  border:1px solid var(--brand-200)
+}
+.btn.ghost:hover{background:var(--brand-50)}
+.btn.secondary{background:var(--accent);color:#001018}
+
+/* Grid and cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.card .pad{padding:16px}
+.stat{display:flex;gap:12px;align-items:flex-start}
+.stat .icon{
+  width:40px;height:40px;border-radius:10px;
+  background:var(--chip);display:flex;align-items:center;justify-content:center
+}
+.muted{color:var(--muted)}
+
+/* Tour cards */
+.tour-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:transform .2s ease, box-shadow .2s ease}
+.tour-card:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(2,6,23,.06)}
+.tour-card__media{height:200px;background:#F1F5F9;display:flex;align-items:center;justify-content:center}
+.tour-card__media img{width:100%;height:100%;object-fit:cover}
+.placeholder{color:var(--muted)}
+.tour-card__body{padding:16px}
+h1,h2,h3{margin:0}
+h2{font-size:28px;margin-bottom:12px}
+h3{margin:0 0 6px;font-size:20px}
+.price{font-weight:800;margin:8px 0}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{
+  background:var(--chip);color:var(--muted);
+  border:1px solid var(--border);padding:4px 8px;border-radius:999px;font-size:12px
+}
+
+/* Feature list */
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+
+/* Categories */
+.categories{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+@media (max-width: 1000px){ .categories{grid-template-columns:repeat(3,1fr)} }
+@media (max-width: 640px){ .categories{grid-template-columns:repeat(2,1fr)} }
+.cat{
+  position:relative;overflow:hidden;border-radius:16px;border:1px solid var(--border);
+  background:linear-gradient(160deg,#FFFFFF,#F6F7FB)
+}
+.cat a{display:block;color:var(--text);text-decoration:none;padding:18px;font-weight:700}
+.cat small{display:block;color:var(--muted);font-weight:500;margin-top:4px}
+
+/* Steps */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.step{
+  border:1px solid var(--border);border-radius:16px;
+  background:linear-gradient(180deg,#FFFFFF,#F8FAFC);padding:16px
+}
+.step .num{
+  display:inline-flex;width:28px;height:28px;border-radius:8px;
+  background:var(--chip);align-items:center;justify-content:center;margin-bottom:10px;
+  color:var(--muted);font-weight:800
+}
+
+/* FAQ */
+details{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px}
+summary{cursor:pointer;font-weight:700}
+
+/* Footer (brand) */
+.footer{
+  background:var(--brand);
+  color:#fff;
+  margin-top:40px;
+  padding:40px 0 20px;
+}
+.footer-inner{display:flex;flex-wrap:wrap;justify-content:space-between;gap:30px}
+.footer-logo{display:flex;align-items:center;gap:10px;font-weight:700;color:#fff;text-decoration:none}
+.footer-logo img{width:36px;height:36px;border-radius:8px;object-fit:cover}
+.footer-brand{max-width:300px}
+.footer a{color:#fff;text-decoration:none;opacity:.9}
+.footer a:hover{opacity:1}
+.footer-copy{width:100%;text-align:center;margin-top:20px;font-size:.9rem;opacity:.85}
+
+/* === Section header === */
+.section-head{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+  flex-wrap:wrap
+}
+.section-head h2{margin:0}
+.section-head .subtitle{max-width:700px}
+.section-head .cta-row{display:flex; gap:10px}
+
+/* === Плитки «Для кого» === */
+.tiles3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+@media (max-width: 900px){ .tiles3{grid-template-columns:1fr 1fr} }
+@media (max-width: 600px){ .tiles3{grid-template-columns:1fr} }
+
+.tile{
+  border:1px solid var(--border);
+  background:linear-gradient(180deg,#FFFFFF,#F9FBFF);
+  border-radius:16px; overflow:hidden; display:flex; flex-direction:column
+}
+.tile__media{
+  aspect-ratio: 16/9;
+  background:#FFE8E8; /* лёгкий красный оттенок вместо фиолетового */
+  display:flex; align-items:center; justify-content:center;
+}
+.tile__body{padding:14px}
+.skelet{
+  width:80%; height:60%;
+  border-radius:14px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.0) 0%, rgba(255,255,255,.45) 50%, rgba(255,255,255,.0) 100%),
+    radial-gradient(400px 200px at 20% 10%, rgba(214,31,31,.12), transparent 60%),
+    radial-gradient(400px 200px at 80% 0%, rgba(255,106,106,.12), transparent 60%);
+}
+
+/* === Отзывы === */
+.reviews{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:16px
+}
+@media (max-width: 900px){ .reviews{grid-template-columns:1fr 1fr} }
+@media (max-width: 600px){ .reviews{grid-template-columns:1fr} }
+
+.review-card{
+  border:1px solid var(--border); background:var(--card);
+  border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:12px
+}
+.review-text{margin:0}
+.review-meta{display:flex; align-items:center; gap:10px}
+.avatar{
+  width:36px; height:36px; border-radius:10px;
+  background:var(--brand-100); display:flex; align-items:center; justify-content:center;
+  font-weight:800; color:var(--brand-700)
+}
+.small{font-size:12px}
+
+/* ===== Admin UI ===== */
+.adm-auth, .adm-form { display:flex; flex-direction:column; gap:14px; }
+.adm-label{ display:flex; flex-direction:column; gap:6px; }
+.adm-label > span{ font-weight:700; }
+.adm-label input, .adm-label textarea, .adm-label select{
+  border:1px solid var(--border); border-radius:12px; padding:10px 12px;
+  background:#fff; color:var(--text); font:inherit;
+}
+.adm-label textarea{ min-height:110px; resize:vertical; }
+.adm-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+@media (max-width: 1100px){ .adm-grid{ grid-template-columns:repeat(2,1fr); } }
+@media (max-width: 640px){ .adm-grid{ grid-template-columns:1fr; } }
+.adm-subtitle{ font-weight:900; margin-top:8px; }
+.adm-error{ color:var(--danger); }
+.adm-msg{ background:var(--chip); padding:10px 12px; border-radius:10px; }
+
+.adm-uploader{ display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+.adm-images{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-top:8px; }
+.adm-img{ border:1px solid var(--border); border-radius:12px; overflow:hidden; padding:8px; display:flex; flex-direction:column; gap:8px; }
+.adm-img img{ width:100%; height:140px; object-fit:cover; border-radius:8px; }
+
+.adm-list{ display:flex; flex-direction:column; gap:10px; margin-top:10px; }
+.adm-item{ border:1px solid var(--border); border-radius:14px; padding:12px; display:flex; align-items:center; justify-content:space-between; gap:12px; background:#fff; }
+.adm-item-actions{ display:flex; gap:8px; }
+.btn.small{ padding:8px 12px; border-radius:10px; font-weight:700; }
