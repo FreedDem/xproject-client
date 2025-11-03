@@ -4,6 +4,10 @@ import TourCard from "./TourCard";
 import { s3url as withS3 } from "../config";
 import "./Admin.css";
 
+// ===== API base helper =====
+const API_BASE = (import.meta?.env?.VITE_API_BASE || "").replace(/\/+$/, "");
+const apiUrl = (p) => (API_BASE ? `${API_BASE}${p}` : p);
+
 /* ========== Utils ========== */
 function escapeHtml(s = "") {
   return String(s)
@@ -75,21 +79,31 @@ export default function Admin() {
   const fetchTours = async () => {
     try {
       setLoading(true);
-      const r = await fetch("/api/tours?limit=200&expand=urls");
-      const j = await r.json();
+      const r = await fetch(apiUrl("/api/tours?limit=200&expand=urls"), {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const ct = r.headers.get("content-type") || "";
+      const j = ct.includes("application/json") ? await r.json() : { items: [] };
+      if (!r.ok) throw new Error(j?.error || `HTTP ${r.status}`);
       setTours(j.items || []);
+      setError(null);
     } catch (e) {
       setError(e?.message || "Ошибка загрузки туров");
     } finally {
       setLoading(false);
     }
   };
+
   const deleteTour = async (id) => {
-    const r = await fetch(`/api/tours/${id}`, {
+    const r = await fetch(apiUrl(`/api/tours/${id}`), {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!r.ok) throw new Error((await r.json()).error || "Ошибка удаления");
+    if (!r.ok) {
+      let err = "Ошибка удаления";
+      try { err = (await r.json()).error || err; } catch {}
+      throw new Error(err);
+    }
   };
 
   const login = async (e) => {
@@ -105,8 +119,8 @@ export default function Admin() {
   };
 
   useEffect(() => {
-    fetchTours();
-  }, []);
+    if (token) fetchTours(); // грузим только после логина
+  }, [token]);
 
   const openCreate = () => {
     setEditId(null);
@@ -461,7 +475,7 @@ function TourFormDialog({ token, initial, editId, onClose, onSaved }) {
       delete payload.cancelTerms;
 
       if (editId) {
-        const r = await fetch(`/api/tours/${editId}`, {
+        const r = await fetch(apiUrl(`/api/tours/${editId}`), {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
