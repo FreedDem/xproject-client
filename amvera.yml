@@ -1,14 +1,14 @@
 meta:
   environment: node
   toolchain:
-    name: npm
+    name: node
     version: "20"
 
 build:
   skip: false
   additionalCommands: |
     npm ci
-    npm run build
+    npm run build:prod
 
 run:
   command: npm start
