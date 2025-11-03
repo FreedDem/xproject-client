@@ -77,47 +77,46 @@ export default function Admin() {
   const [initialFormData, setInitialFormData] = useState(DEFAULT_TOUR);
 
   const fetchTours = async () => {
-  try {
-    setLoading(true);
-    // api.fetchTours уже приводит ответ к МАССИВУ туров
-    const list = await apiFetchTours({ limit: 200, expand: "urls" });
-    setTours(Array.isArray(list) ? list : (list?.items || []));
-    setError(null);
-  } catch (e) {
-    setError(e?.message || "Ошибка загрузки туров");
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      setLoading(true);
+      // api.fetchTours уже приводит ответ к МАССИВУ туров
+      const list = await apiFetchTours({ limit: 200, expand: "urls" });
+      setTours(Array.isArray(list) ? list : (list?.items || []));
+      setError(null);
+    } catch (e) {
+      setError(e?.message || "Ошибка загрузки туров");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const deleteTour = async (id) => {
-  const r = await fetch(apiUrl(`/api/tours/${id}`), {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!r.ok) {
-    let err = "Ошибка удаления";
-    try { err = (await r.json()).error || err; } catch {}
-    throw new Error(err);
-  }
-};
+  const deleteTour = async (id) => {
+    const r = await fetch(apiUrl(`/api/tours/${id}`), {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!r.ok) {
+      let err = "Ошибка удаления";
+      try { err = (await r.json()).error || err; } catch {}
+      throw new Error(err);
+    }
+  };
 
-const login = async (e) => {
-  e.preventDefault();
-  try {
-    const { token } = await adminLogin(password);
-    setToken(token);
-    setPassword("");
-    setMsg(null);
-  } catch {
-    setMsg("❌ Неверный пароль или ошибка сервера");
-  }
-};
+  const login = async (e) => {
+    e.preventDefault();
+    try {
+      const { token } = await adminLogin(password);
+      setToken(token);
+      setPassword("");
+      setMsg(null);
+    } catch {
+      setMsg("❌ Неверный пароль или ошибка сервера");
+    }
+  };
 
-useEffect(() => {
-  if (token) fetchTours(); // грузим только после логина
-}, [token]);
-
+  useEffect(() => {
+    if (token) fetchTours(); // грузим только после логина
+  }, [token]);
 
   const openCreate = () => {
     setEditId(null);
@@ -328,7 +327,7 @@ function RichEditor({ label, html, onChange, placeholder }) {
 }
 
 /* ========== Photo Dialog ========== */
-function ImageDialog({ open, onClose, label, images, single, onChange, token }) {
+function ImageDialog({ open, onClose, label, images, single, onChange, token, folder = "tours" }) {
   const [busy, setBusy] = useState(false);
   const dropRef = useRef(null);
 
@@ -336,14 +335,15 @@ function ImageDialog({ open, onClose, label, images, single, onChange, token }) 
 
   const handleDrop = async (e) => {
     e.preventDefault();
-    const files = Array.from(e.dataTransfer.files);
+    const files = Array.from(e.dataTransfer.files || []);
     await handleUpload(files);
   };
-  const handleUpload = async (files) => {
-    if (!files.length) return;
+  const handleUpload = async (files = []) => {
+    const list = Array.isArray(files) ? files : Array.from(files || []);
+    if (!list.length) return;
     try {
       setBusy(true);
-      const { keys } = await uploadImages(files, token);
+      const { keys } = await uploadImages(list, token, folder);
       if (single) onChange(keys[0]);
       else onChange([...(images || []), ...keys]);
     } finally {
@@ -353,7 +353,7 @@ function ImageDialog({ open, onClose, label, images, single, onChange, token }) 
 
   const handleRemove = (i) => {
     if (single) onChange("");
-    else onChange(images.filter((_, idx) => idx !== i));
+    else onChange((images || []).filter((_, idx) => idx !== i));
   };
 
   return (
@@ -383,7 +383,7 @@ function ImageDialog({ open, onClose, label, images, single, onChange, token }) 
                 multiple={!single}
                 accept="image/*"
                 style={{ display: "none" }}
-                onChange={(e) => handleUpload(e.target.files)}
+                onChange={(e) => handleUpload(Array.from(e.target.files || []))}
               />
             </label>
           </p>
@@ -553,6 +553,7 @@ function TourFormDialog({ token, initial, editId, onClose, onSaved }) {
                 setPhotoDialog({
                   field: "heroImages",
                   label: "Главные фото (Hero Images)",
+                  folder: "tours/hero",
                 })
               }
             >
@@ -565,6 +566,7 @@ function TourFormDialog({ token, initial, editId, onClose, onSaved }) {
                 setPhotoDialog({
                   field: "gallery",
                   label: "Галерея тура",
+                  folder: "tours/gallery",
                 })
               }
             >
@@ -587,6 +589,7 @@ function TourFormDialog({ token, initial, editId, onClose, onSaved }) {
                 setPhotoDialog({
                   field: "livingPhotos",
                   label: "Фото проживания",
+                  folder: "tours/living",
                 })
               }
             >
@@ -605,6 +608,7 @@ function TourFormDialog({ token, initial, editId, onClose, onSaved }) {
                   field: "mapImage",
                   label: "Карта маршрута (одно изображение)",
                   single: true,
+                  folder: "tours/map",
                 })
               }
             >
@@ -679,6 +683,7 @@ function TourFormDialog({ token, initial, editId, onClose, onSaved }) {
                       field: `itinerary_${i}`,
                       label: `Фото дня ${i + 1}`,
                       images: day.photos || [],
+                      folder: `tours/itinerary/day-${i + 1}`,
                       onChange: (v) =>
                         setField(
                           "itinerary",
@@ -862,6 +867,7 @@ function TourFormDialog({ token, initial, editId, onClose, onSaved }) {
             else setField(photoDialog.field, v);
           }}
           token={token}
+          folder={photoDialog.folder || "tours"}
         />
       )}
     </div>
