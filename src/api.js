@@ -1,43 +1,30 @@
 // src/api.js
 
-// ----- Определение базы API -----
+// ----- База API -----
+// Приоритет: VITE_API_BASE -> dev(5173) -> same-origin (пусто)
 const normalizeBase = (s) => (s || '').replace(/\/+$/, '');
 
-const detectBase = () => {
-  // 1) Явно указанная переменная окружения (приоритет)
+function detectBase() {
   const envBase =
     (typeof import.meta !== 'undefined' &&
       import.meta.env &&
       import.meta.env.VITE_API_BASE) || '';
-  if (envBase) return normalizeBase(envBase);
 
-  // 2) Dev (vite) → локальный бэкенд
-  if (typeof window !== 'undefined') {
-    const { hostname, port, protocol } = window.location || {};
-    if (port === '5173') {
-      return 'http://127.0.0.1:5174';
-    }
+  if (envBase !== '') return normalizeBase(envBase);
 
-    // 3) Прод: пробуем api.<host>
-    //    Пример: xproject.travel -> https://api.xproject.travel
-    //    www.xproject.travel -> https://api.xproject.travel
-    const bareHost = (hostname || '').replace(/^www\./, '');
-    if (bareHost && bareHost !== 'localhost') {
-      return `${protocol}//api.${bareHost}`;
-    }
+  if (typeof window !== 'undefined' && window.location?.port === '5173') {
+    return 'http://127.0.0.1:5174'; // dev
   }
 
-  // 4) Фоллбек: same-origin (если фронт и бэк на одном домене и /api проксируется)
-  // Если у тебя именно такой случай — лучше задай VITE_API_BASE="/"
+  // prod: same-origin (проксируем /api на бэк)
   return '';
-};
+}
 
-const API_BASE = detectBase();
+const API_BASE_RAW = detectBase();
+const API_BASE = API_BASE_RAW === '/' ? '' : API_BASE_RAW;
 
-// Собираем абсолютный или относительный URL
 const u = (p) => {
   const path = p.startsWith('/') ? p : `/${p}`;
-  if (!API_BASE || API_BASE === '/') return path; // same-origin
   return `${API_BASE}${path}`;
 };
 
@@ -46,21 +33,20 @@ const headers = (token) => ({
   ...(token ? { Authorization: `Bearer ${token}` } : {}),
 });
 
-// Универсальный запрос с нормальными ошибками
+// Универсальный запрос с внятными ошибками
 async function request(path, opts = {}) {
   const res = await fetch(u(path), opts);
-  if (!res.ok) {
-    let text = '';
-    try {
-      text = await res.text();
-    } catch {}
-    const msg = text || `HTTP ${res.status} on ${path}`;
-    throw new Error(msg);
-  }
-  // Пытаемся распарсить JSON, иначе вернём текст
   const ct = res.headers.get('content-type') || '';
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(text || `HTTP ${res.status} on ${path}`);
+  }
+
   if (ct.includes('application/json')) return res.json();
-  return res.text();
+
+  const text = await res.text().catch(() => '');
+  throw new Error(text || 'Не JSON ответ от API');
 }
 
 // ===== Auth
@@ -79,6 +65,7 @@ export async function fetchTours(params = {}) {
   if (params.status) sp.set('status', params.status); // published|draft|all
   if (params.page) sp.set('page', String(params.page));
   if (params.limit) sp.set('limit', String(params.limit));
+  if (params.expand) sp.set('expand', String(params.expand));
 
   const qs = sp.toString();
   const data = await request(`/api/tours${qs ? `?${qs}` : ''}`);
