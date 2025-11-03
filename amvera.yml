@@ -3,8 +3,19 @@ meta:
   toolchain:
     name: npm
     version: "20"
+
 build:
   skip: false
-  additionalCommands: npm ci
+  additionalCommands: |
+    set -e
+    echo "=== 🚀 BUILD ==="
+    node -v && npm -v
+    rm -rf dist
+    npm ci
+    npm run build
+    echo "=== 📦 DIST CONTENT ==="
+    ls -la dist || true
+
 run:
-  command: npx serve -s dist -l $PORT
+  # если dist пустой — соберём ещё раз, затем запустим
+  command: sh -c '[ -f dist/index.html ] || (npm ci && npm run build); npx serve -s dist -l $PORT'
