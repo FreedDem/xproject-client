@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --open",
-    "build": "vite build",
-    "build:prod": "VITE_API_BASE=https://xproject-server-freede.amvera.io vite build",
+    "build": "VITE_API_BASE=https://xproject-server-freede.amvera.io vite build",
     "preview": "vite preview",
     "start": "serve -s dist -l $PORT"
   },

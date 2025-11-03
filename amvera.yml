@@ -12,11 +12,11 @@ build:
     node -v && npm -v
     rm -rf dist
     npm ci
-    # если нужен свой API-бекенд — пропиши тут переменную окружения для Vite
+    # билд фронта с указанием адреса бэкенда
     VITE_API_BASE=https://xproject-server-freede.amvera.io npm run build
     echo "=== 📦 DIST CONTENT ==="
     ls -la dist || true
 
 run:
-  # Запускаем напрямую serve и слушаем $PORT
-  command: npx serve -s dist -l $PORT
+  # Запускаем напрямую serve из правильного каталога и слушаем $PORT
+  command: npx serve -s /app/dist -l ${PORT:-80}
