@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom'
 import { s3url as withS3 } from '../config'
 import './tourPage.css'
 import TourGallery from './TourGallery'
-import BookingDialog from '../components/BookingDialog' // модалка бронирования
+import BookingDialog from '../components/BookingDialog'
+import { fetchTours } from '../api' // ✅ как в Home/Tours используем общий API-клиент
 
 /* ===== утилиты ===== */
 const translitMap = { а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',ц:'c',ч:'ch',ш:'sh',щ:'sch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya' }
@@ -36,7 +37,8 @@ const clip = (s='', n=140) => (s.length <= n ? s : s.slice(0, n).replace(/\s[^\s
 
 /* ===== страница ===== */
 export default function TourPage() {
-  const { slug } = useParams()
+  const { slug: rawSlug } = useParams()
+  const slug = decodeURIComponent(rawSlug || '')
   const [tour, setTour] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -44,27 +46,31 @@ export default function TourPage() {
   const [descOpen, setDescOpen] = useState(false)
   const [incOpen, setIncOpen] = useState(false)
   const [excOpen, setExcOpen] = useState(false)
-
   const [bookingOpen, setBookingOpen] = useState(false)
 
   useEffect(() => {
-    let ok = true
+    let alive = true
     ;(async () => {
       try {
         setLoading(true)
-        // Берём с expand=urls, чтобы сразу получить абсолютные ссылки
-        const r = await fetch('/api/tours?limit=200&expand=urls')
-        const j = await r.json()
-        const items = j?.items || []
-        const t = items.find(x => x.slug === slug) || items.find(x => slugify(x.title) === slug)
-        if (ok) setTour(t || null)
-      } catch {
-        if (ok) setError('Ошибка загрузки')
+        setError(null)
+
+        // ✅ берём список так же, как на главной/странице всех туров (expand=urls для абсолютных ссылок)
+        const items = await fetchTours({ limit: 500, expand: 'urls' })
+
+        // по slug → по slugify(title) → по _id
+        const wanted = items.find(x => x?.slug === slug)
+          || items.find(x => slugify(x?.title) === slug)
+          || items.find(x => x?._id === slug)
+
+        if (alive) setTour(wanted || null)
+      } catch (e) {
+        if (alive) setError(e?.message || 'Ошибка загрузки')
       } finally {
-        if (ok) setLoading(false)
+        if (alive) setLoading(false)
       }
     })()
-    return () => { ok = false }
+    return () => { alive = false }
   }, [slug])
 
   if (loading) return <div className="wrap"><p>Загрузка…</p></div>
