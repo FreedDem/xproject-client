@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { adminLogin, createTour, uploadImages } from "../api";
+import { adminLogin, createTour, uploadImages, fetchTours as apiFetchTours } from "../api";
 import TourCard from "./TourCard";
 import { s3url as withS3 } from "../config";
 import "./Admin.css";
@@ -77,50 +77,47 @@ export default function Admin() {
   const [initialFormData, setInitialFormData] = useState(DEFAULT_TOUR);
 
   const fetchTours = async () => {
-    try {
-      setLoading(true);
-      const r = await fetch(apiUrl("/api/tours?limit=200&expand=urls"), {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      const ct = r.headers.get("content-type") || "";
-      const j = ct.includes("application/json") ? await r.json() : { items: [] };
-      if (!r.ok) throw new Error(j?.error || `HTTP ${r.status}`);
-      setTours(j.items || []);
-      setError(null);
-    } catch (e) {
-      setError(e?.message || "Ошибка загрузки туров");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    // api.fetchTours уже приводит ответ к МАССИВУ туров
+    const list = await apiFetchTours({ limit: 200, expand: "urls" });
+    setTours(Array.isArray(list) ? list : (list?.items || []));
+    setError(null);
+  } catch (e) {
+    setError(e?.message || "Ошибка загрузки туров");
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const deleteTour = async (id) => {
-    const r = await fetch(apiUrl(`/api/tours/${id}`), {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!r.ok) {
-      let err = "Ошибка удаления";
-      try { err = (await r.json()).error || err; } catch {}
-      throw new Error(err);
-    }
-  };
+const deleteTour = async (id) => {
+  const r = await fetch(apiUrl(`/api/tours/${id}`), {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!r.ok) {
+    let err = "Ошибка удаления";
+    try { err = (await r.json()).error || err; } catch {}
+    throw new Error(err);
+  }
+};
 
-  const login = async (e) => {
-    e.preventDefault();
-    try {
-      const { token } = await adminLogin(password);
-      setToken(token);
-      setPassword("");
-      setMsg(null);
-    } catch {
-      setMsg("❌ Неверный пароль или ошибка сервера");
-    }
-  };
+const login = async (e) => {
+  e.preventDefault();
+  try {
+    const { token } = await adminLogin(password);
+    setToken(token);
+    setPassword("");
+    setMsg(null);
+  } catch {
+    setMsg("❌ Неверный пароль или ошибка сервера");
+  }
+};
 
-  useEffect(() => {
-    if (token) fetchTours(); // грузим только после логина
-  }, [token]);
+useEffect(() => {
+  if (token) fetchTours(); // грузим только после логина
+}, [token]);
+
 
   const openCreate = () => {
     setEditId(null);
