@@ -5,6 +5,7 @@ import Steps from './Steps'
 import FAQ from './FAQ'
 import TourCard from './TourCard'
 import { Link } from 'react-router-dom'
+import { fetchTours } from '../api' // ✅ используем общий клиент API
 
 export default function Home(){
   const [tours, setTours] = useState([])
@@ -12,21 +13,19 @@ export default function Home(){
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    let ok = true
+    let alive = true
     ;(async () => {
       try {
         setLoading(true)
-        const r = await fetch('/api/tours?limit=12&expand=urls')
-        const j = await r.json()
-        if (!r.ok) throw new Error(j?.error || 'Ошибка загрузки')
-        if (ok) setTours(j.items || [])
+        const list = await fetchTours({ limit: 12, expand: 'urls' })
+        if (alive) setTours(list)
       } catch (e) {
-        if (ok) setError(e?.message || 'Ошибка загрузки')
+        if (alive) setError(e?.message || 'Ошибка загрузки')
       } finally {
-        if (ok) setLoading(false)
+        if (alive) setLoading(false)
       }
     })()
-    return () => { ok = false }
+    return () => { alive = false }
   }, [])
 
   return (
@@ -43,27 +42,21 @@ export default function Home(){
 
           <div className="tiles3" style={{marginTop:14}}>
             <article className="tile">
-              <div className="tile__media">
-                <div className="skelet" aria-hidden />
-              </div>
+              <div className="tile__media"><div className="skelet" aria-hidden /></div>
               <div className="tile__body">
                 <strong>Хочется сменить обстановку</strong>
                 <p className="muted">Продуманные маршруты без толп туристов, чтобы просто дышать и наслаждаться.</p>
               </div>
             </article>
             <article className="tile">
-              <div className="tile__media">
-                <div className="skelet" aria-hidden />
-              </div>
+              <div className="tile__media"><div className="skelet" aria-hidden /></div>
               <div className="tile__body">
                 <strong>Организация — на нас</strong>
                 <p className="muted">Логистика, отели, трансферы и сопровождение — всё закрываем под ключ.</p>
               </div>
             </article>
             <article className="tile">
-              <div className="tile__media">
-                <div className="skelet" aria-hidden />
-              </div>
+              <div className="tile__media"><div className="skelet" aria-hidden /></div>
               <div className="tile__body">
                 <strong>Нужна классная компания</strong>
                 <p className="muted">Небольшие группы и близкие по духу попутчики. Удобно ехать даже в одиночку.</p>
@@ -77,7 +70,7 @@ export default function Home(){
         </div>
       </section>
 
-      {/* === Ближайшие туры (похожие карточки/сетка) === */}
+      {/* === Ближайшие туры === */}
       <section className="section">
         <div className="container">
           <div className="section-head">
@@ -102,7 +95,6 @@ export default function Home(){
         </div>
       </section>
 
-      {/* === Отзывы (3 карточки с цитатами) === */}
       <section className="section">
         <div className="container">
           <div className="section-head">
@@ -111,39 +103,20 @@ export default function Home(){
           <div className="reviews" style={{marginTop:14}}>
             <article className="review-card">
               <p className="review-text">«Ирландия оказалась сказочной: не было ни единого дня без вау-момента. Организация — на высоте!»</p>
-              <div className="review-meta">
-                <div className="avatar" aria-hidden>М</div>
-                <div>
-                  <strong>Марина</strong>
-                  <div className="muted small">Ирландия</div>
-                </div>
-              </div>
+              <div className="review-meta"><div className="avatar" aria-hidden>М</div><div><strong>Марина</strong><div className="muted small">Ирландия</div></div></div>
             </article>
             <article className="review-card">
               <p className="review-text">«Японию увидели без толп и очередей. Программа плотная, но очень комфортная. Хочется снова!»</p>
-              <div className="review-meta">
-                <div className="avatar" aria-hidden>Г</div>
-                <div>
-                  <strong>Георгий</strong>
-                  <div className="muted small">Япония</div>
-                </div>
-              </div>
+              <div className="review-meta"><div className="avatar" aria-hidden>Г</div><div><strong>Георгий</strong><div className="muted small">Япония</div></div></div>
             </article>
             <article className="review-card">
               <p className="review-text">«ЮАР полностью перевернула представление о стране. Каждый день — лучше предыдущего!»</p>
-              <div className="review-meta">
-                <div className="avatar" aria-hidden>Т</div>
-                <div>
-                  <strong>Татьяна</strong>
-                  <div className="muted small">Южная Африка</div>
-                </div>
-              </div>
+              <div className="review-meta"><div className="avatar" aria-hidden>Т</div><div><strong>Татьяна</strong><div className="muted small">Южная Африка</div></div></div>
             </article>
           </div>
         </div>
       </section>
 
-      {/* Можно оставить ваши преимущества/шаги/FAQ ниже */}
       <Features />
       <Steps />
       <FAQ />

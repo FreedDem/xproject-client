@@ -1,4 +1,3 @@
-// src/components/TourCard.jsx
 import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { withS3 } from '../config'
@@ -34,16 +33,13 @@ export default function TourCard({ tour }) {
   const seats = Number(firstSlot?.seatsAvailable ?? 0)
   const seatsBadge =
     seats === 0 ? 'нет мест'
-    : seats > 0 && seats <= 5 ? `осталось ${seats} ${seats === 1 ? 'место' : seats < 5 ? 'места' : 'мест'}`
-    : ''
+    : seats > 0 && seats <= 5 ? `осталось ${seats} ${seats === 1 ? 'место' : seats < 5 ? 'места' : 'мест'}` : ''
 
   return (
     <Link to={`/tour/${tour.slug}`} className="tcard">
       <div className="media">
         {cover ? <img src={cover} alt={tour.title} loading="lazy" /> : <div className="ph">Фото тура</div>}
-
         {seatsBadge ? <div className="badge-seats">{seatsBadge}</div> : null}
-
         <div className="title">
           <div className="t1">{tour.title}</div>
           {tour.durationDays ? <div className="t2">{tour.durationDays} дней</div> : null}
@@ -51,7 +47,6 @@ export default function TourCard({ tour }) {
       </div>
 
       <div className="panel">
-        {/* ценник — на стыке фото и панели */}
         {price ? <div className="badge-price">{price}</div> : null}
 
         {when && (
@@ -108,14 +103,14 @@ export default function TourCard({ tour }) {
         }
 
         .panel {
-          position: relative;               /* для позиционирования ценника */
+          position: relative;
           background: var(--panel-bg);
-          padding: 28px 18px 18px;          /* +верхний отступ под ценник */
+          padding: 28px 18px 18px;  /* +верхний отступ под ценник */
         }
-       .badge-price {
+        .badge-price {
           position: absolute;
-          right: 18px;     /* вместо left */
-          top: -16px;      /* остаётся */
+          right: 18px;
+          top: -16px;
           z-index: 4;
           background: #ffd84a;
           color: #111;
@@ -123,6 +118,7 @@ export default function TourCard({ tour }) {
           padding: 10px 12px;
           border-radius: 6px;
           box-shadow: 0 6px 14px rgba(0,0,0,.18);
+          display: inline-flex;
           white-space: nowrap;
         }
 
@@ -131,9 +127,17 @@ export default function TourCard({ tour }) {
         .desc { margin: 0; color: var(--muted); line-height: 1.6; font-size: 15px; }
 
         @media (max-width: 640px) {
-          .t1 { font-size: 18px; }
-          .badge-price { top: -14px; left: 16px; }
+        .t1 { font-size: 18px; }
+
+        .badge-price {
+          top: -14px;
+          right: 16px;      /* ✅ держим справа */
+          left: auto;       /* сбрасываем левый край */
+          max-width: 75%;   /* ограничиваем ширину, чтобы не растягивалась */
+          font-size: 14px;  /* чуть меньше текст */
+          padding: 8px 10px;
         }
+      }
       `}</style>
     </Link>
   )
