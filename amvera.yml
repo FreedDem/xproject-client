@@ -5,10 +5,6 @@ meta:
     version: "20"
 build:
   skip: false
-  additionalCommands: set -e echo "=== 🚀 START AMVERA BUILD ===" node -v && npm
-    -v rm -rf dist node_modules npm ci echo "=== HEAD src/api.js ===" && head -n
-    20 src/api.js || true echo "=== HEAD src/App.jsx ===" && head -n 20
-    src/App.jsx || true VITE_API_BASE=https://xproject-server-freede.amvera.io
-    npm run build echo "=== ✅ BUILD FINISHED ===" ls -la dist || true
+  additionalCommands: npm ci
 run:
-  command: npm start
+  command: npx serve -s dist -l $PORT -c 1
