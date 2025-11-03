@@ -91,7 +91,12 @@ export default function Admin() {
   };
 
   const deleteTour = async (id) => {
-    const url = new URL(`/api/tours/${id}`, API_BASE).toString();
+    // безопасная склейка URL без new URL
+    const base = API_BASE || "";
+    const url = base
+      ? `${base.replace(/\/+$/, "")}/api/tours/${id}`
+      : `/api/tours/${id}`;
+
     const r = await fetch(url, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
@@ -474,8 +479,13 @@ function TourFormDialog({ token, initial, editId, onClose, onSaved }) {
       delete payload.livingInfo;
       delete payload.cancelTerms;
 
-      if (editId) {
-        const url = new URL(`/api/tours/${editId}`, API_BASE).toString();
+     if (editId) {
+        // безопасная склейка URL без new URL
+        const base = API_BASE || "";
+        const url = base
+          ? `${base.replace(/\/+$/, "")}/api/tours/${editId}`
+          : `/api/tours/${editId}`;
+
         const r = await fetch(url, {
           method: "PUT",
           headers: {
