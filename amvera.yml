@@ -7,16 +7,27 @@ meta:
 build:
   skip: false
   additionalCommands: |
-    # Очистим кэш и предыдущие билды
+    set -e
+    echo "=== 🚀 START AMVERA BUILD ==="
+    echo "Node version:" && node -v
+    echo "NPM version:" && npm -v
+
+    # Очистим всё старое
     rm -rf dist node_modules
     npm ci
 
-    # Диагностика: выведем кусок файлов, чтобы убедиться что Amvera берет актуальный код
+    # Проверим файлы, чтобы убедиться, что код актуальный
     echo "==== HEAD src/api.js ====" && head -n 20 src/api.js || true
     echo "==== HEAD src/App.jsx ====" && head -n 20 src/App.jsx || true
 
-    # Сборка с нужной переменной
+    # Явно покажем переменную окружения
+    echo "==== Using API base: https://xproject-server-freede.amvera.io ===="
+
+    # Сборка
     npm run build:prod
+
+    echo "=== ✅ BUILD FINISHED ==="
+    ls -la dist || true
 
 run:
   command: npm start
