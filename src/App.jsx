@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -7,7 +7,16 @@ import Tours from './components/Tours'
 import Admin from './components/Admin'
 import TourPage from './components/TourPage'
 
-export default function App(){
+export default function App() {
+
+  // ======= ЛОГИ для отладки окружения =======
+  useEffect(() => {
+    console.log('[APP] import.meta.env.MODE =', import.meta.env?.MODE);
+    console.log('[APP] import.meta.env.VITE_API_BASE =', import.meta.env?.VITE_API_BASE);
+    console.log('[APP] window.location.origin =', window.location.origin);
+  }, []);
+  // ==========================================
+
   return (
     <div className="site-wrap">
       <Navbar />

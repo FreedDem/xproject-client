@@ -1,7 +1,6 @@
 // src/api.js
 
 // ----- База API -----
-// Приоритет: VITE_API_BASE -> dev(5173) -> same-origin (пусто)
 const normalizeBase = (s) => (s || '').replace(/\/+$/, '');
 
 function detectBase() {
@@ -23,6 +22,28 @@ function detectBase() {
 const API_BASE_RAW = detectBase();
 const API_BASE = API_BASE_RAW === '/' ? '' : API_BASE_RAW;
 
+// ===== ЛОГИ =====
+console.log('[API] import.meta.env.VITE_API_BASE =', import.meta.env?.VITE_API_BASE);
+console.log('[API] Detected API_BASE =', API_BASE);
+
+// Перехват всех fetch-запросов, чтобы видеть адреса
+if (typeof window !== 'undefined') {
+  const originalFetch = window.fetch;
+  window.fetch = async (...args) => {
+    const url = args[0];
+    console.log('[FETCH]', url);
+    try {
+      const res = await originalFetch(...args);
+      console.log('[FETCH OK]', res.status, url);
+      return res;
+    } catch (err) {
+      console.error('[FETCH ERR]', url, err);
+      throw err;
+    }
+  };
+}
+
+// ===== Вспомогательные функции =====
 const u = (p) => {
   const path = p.startsWith('/') ? p : `/${p}`;
   return `${API_BASE}${path}`;
@@ -33,7 +54,7 @@ const headers = (token) => ({
   ...(token ? { Authorization: `Bearer ${token}` } : {}),
 });
 
-// Универсальный запрос с внятными ошибками
+// ===== Универсальный запрос =====
 async function request(path, opts = {}) {
   const res = await fetch(u(path), opts);
   const ct = res.headers.get('content-type') || '';
@@ -49,7 +70,7 @@ async function request(path, opts = {}) {
   throw new Error(text || 'Не JSON ответ от API');
 }
 
-// ===== Auth
+// ===== Auth =====
 export async function adminLogin(password) {
   return request('/api/admin/login', {
     method: 'POST',
@@ -58,11 +79,11 @@ export async function adminLogin(password) {
   });
 }
 
-// ===== Tours (list/read/create/update/delete)
+// ===== Tours (list/read/create/update/delete) =====
 export async function fetchTours(params = {}) {
   const sp = new URLSearchParams();
   if (params.q) sp.set('q', params.q);
-  if (params.status) sp.set('status', params.status); // published|draft|all
+  if (params.status) sp.set('status', params.status);
   if (params.page) sp.set('page', String(params.page));
   if (params.limit) sp.set('limit', String(params.limit));
   if (params.expand) sp.set('expand', String(params.expand));
@@ -99,7 +120,7 @@ export async function deleteTour(id, token) {
   });
 }
 
-// ===== Uploads
+// ===== Uploads =====
 export async function uploadImages(files, token) {
   const fd = new FormData();
   [...files].forEach((f) => fd.append('files', f));
