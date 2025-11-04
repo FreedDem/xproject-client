@@ -121,9 +121,10 @@ export async function deleteTour(id, token) {
 }
 
 // ===== Uploads =====
-export async function uploadImages(files, token) {
+export async function uploadImages(files, token, folder) {
   const fd = new FormData();
   [...files].forEach((f) => fd.append('files', f));
+  if (folder) fd.append('folder', folder); // <-- добавлено
   return request('/api/admin/upload', {
     method: 'POST',
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
