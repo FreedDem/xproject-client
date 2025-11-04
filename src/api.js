@@ -131,3 +131,12 @@ export async function uploadImages(files, token, folder) {
     body: fd,
   });
 }
+
+export async function bookTour(payload) {
+  // ожидается JSON: { name, phone, dates, people, tourId, message, ... }
+  return request('/api/tours/bookings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { bookTour } from '../api'; // <-- добавили
 
 function escapeHtml(s='') {
   return String(s)
@@ -55,25 +56,24 @@ export default function BookingDialog({ open, onClose, tour }) {
       const persons = Math.min(Math.max(1, Number(seats) || 1), maxSeats);
       const dateRange = fmtRange(currentSlot);
 
-      const body = {
+      const payload = {
         tourId: tour?._id,
         tourTitle: tour?.title,
+        // прокинем всё полезное по слоту
+        slotId: currentSlot?._id,
+        start: currentSlot?.start,
+        end: currentSlot?.end,
         dateRange,
         name: fio.trim(),
         phone: phone.trim(),
         adults: persons,
         children: 0,
-        // Добавим email в комментарий, чтобы он попал в уведомление
-        comment: [comment.trim(), email.trim() ? `Email: ${email.trim()}` : ''].filter(Boolean).join('\n').slice(0, 800),
+        comment: [comment.trim(), email.trim() ? `Email: ${email.trim()}` : '']
+          .filter(Boolean).join('\n').slice(0, 800),
       };
 
-      const r = await fetch(`/api/tours/bookings`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok || j?.ok === false) throw new Error(j?.error || 'Не удалось отправить бронирование');
+      const res = await bookTour(payload); // <-- теперь POST через общий клиент
+      if (!res || res.ok === false) throw new Error(res?.error || 'Не удалось отправить бронирование');
 
       setDone(true);
     } catch (err) {
