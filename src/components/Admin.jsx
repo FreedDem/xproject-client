@@ -1,12 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { adminLogin, createTour, uploadImages, fetchTours as apiFetchTours } from "../api";
+import { adminLogin, createTour, updateTour, deleteTour, uploadImages, getTour, fetchTours as apiFetchTours } from "../api";
 import TourCard from "./TourCard";
 import { s3url as withS3 } from "../config";
 import "./Admin.css";
-
-// ===== API base helper =====
-const API_BASE = (import.meta?.env?.VITE_API_BASE || "").replace(/\/+$/, "");
-const apiUrl = (p) => (API_BASE ? `${API_BASE}${p}` : p);
 
 /* ========== Utils ========== */
 function escapeHtml(s = "") {
@@ -87,26 +83,6 @@ export default function Admin() {
       setError(e?.message || "Ошибка загрузки туров");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const deleteTour = async (id) => {
-    // безопасная склейка URL без new URL
-    const base = API_BASE || "";
-    const url = base
-      ? `${base.replace(/\/+$/, "")}/api/tours/${id}`
-      : `/api/tours/${id}`;
-
-    const r = await fetch(url, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!r.ok) {
-      let err = "Ошибка удаления";
-      try {
-        err = (await r.json()).error || err;
-      } catch {}
-      throw new Error(err);
     }
   };
 
@@ -444,6 +420,19 @@ function TourFormDialog({ token, initial, editId, onClose, onSaved }) {
     }));
   };
 
+  const onDelete = async (tour) => {
+  if (!token) return alert("Нет прав: войди как админ");
+  if (!confirm(`Удалить тур «${tour.title}»?`)) return;
+  try {
+    await deleteTour(tour._id, token);
+    await fetchTours();
+    setMsg("🗑️ Удалено");
+    setTimeout(() => setMsg(null), 2000);
+  } catch (e) {
+    alert("Ошибка удаления: " + e.message);
+  }
+};
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -480,27 +469,10 @@ function TourFormDialog({ token, initial, editId, onClose, onSaved }) {
       delete payload.cancelTerms;
 
      if (editId) {
-        // безопасная склейка URL без new URL
-        const base = API_BASE || "";
-        const url = base
-          ? `${base.replace(/\/+$/, "")}/api/tours/${editId}`
-          : `/api/tours/${editId}`;
-
-        const r = await fetch(url, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(payload),
-        });
-        if (!r.ok) {
-          const j = await r.json().catch(() => ({}));
-          throw new Error(j.error || "Ошибка сохранения");
-        }
-      } else {
-        await createTour(payload, token);
-      }
+      await updateTour(editId, payload, token);
+    } else {
+      await createTour(payload, token);
+    }
       setMsg("✅ Сохранено");
       onSaved && onSaved();
     } catch (err) {

@@ -140,3 +140,10 @@ export async function bookTour(payload) {
     body: JSON.stringify(payload),
   });
 }
+
+export async function getTour(id, params = {}) {
+  const sp = new URLSearchParams();
+  if (params.expand) sp.set('expand', String(params.expand));
+  const qs = sp.toString();
+  return request(`/api/tours/${id}${qs ? `?${qs}` : ''}`);
+}
