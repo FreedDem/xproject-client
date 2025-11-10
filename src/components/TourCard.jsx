@@ -26,19 +26,40 @@ function formatPriceRUB(n) {
 }
 
 export default function TourCard({ tour }) {
-  const cover = tour.heroImages?.[0] ? withS3(tour.heroImages[0]) : null
+  // Универсальный резолвер: принимает как ключи S3, так и абсолютные URL
+  const toUrl = (x) => {
+    if (!x) return ''
+    return /^https?:\/\//i.test(x) ? x : (typeof withS3 === 'function' ? withS3(x) : x)
+  }
+
+  // Берём первую доступную картинку: hero → gallery → map
+  const imgKey =
+    (tour.heroImages && tour.heroImages[0]) ||
+    (tour.gallery && tour.gallery[0]) ||
+    tour.mapImage ||
+    ''
+
+  const cover = imgKey ? toUrl(imgKey) : null
+
   const firstSlot = tour.dateSlots?.[0]
   const when = useMemo(() => formatDates(firstSlot), [firstSlot])
   const price = formatPriceRUB(tour.priceFromRUB)
+
+  // Бейдж показываем только при малом остатке мест (1..5). 0 — ничего не показываем.
   const seats = Number(firstSlot?.seatsAvailable ?? 0)
   const seatsBadge =
-    seats === 0 ? 'нет мест'
-    : seats > 0 && seats <= 5 ? `осталось ${seats} ${seats === 1 ? 'место' : seats < 5 ? 'места' : 'мест'}` : ''
+    seats > 0 && seats <= 5
+      ? `осталось ${seats} ${seats === 1 ? 'место' : seats < 5 ? 'места' : 'мест'}`
+      : ''
 
   return (
     <Link to={`/tour/${tour.slug}`} className="tcard">
       <div className="media">
-        {cover ? <img src={cover} alt={tour.title} loading="lazy" /> : <div className="ph">Фото тура</div>}
+        {cover ? (
+          <img src={cover} alt={tour.title} loading="lazy" />
+        ) : (
+          <div className="ph">Фото тура</div>
+        )}
         {seatsBadge ? <div className="badge-seats">{seatsBadge}</div> : null}
         <div className="title">
           <div className="t1">{tour.title}</div>
@@ -105,7 +126,7 @@ export default function TourCard({ tour }) {
         .panel {
           position: relative;
           background: var(--panel-bg);
-          padding: 28px 18px 18px;  /* +верхний отступ под ценник */
+          padding: 28px 18px 18px;
         }
         .badge-price {
           position: absolute;
@@ -127,17 +148,16 @@ export default function TourCard({ tour }) {
         .desc { margin: 0; color: var(--muted); line-height: 1.6; font-size: 15px; }
 
         @media (max-width: 640px) {
-        .t1 { font-size: 18px; }
-
-        .badge-price {
-          top: -14px;
-          right: 16px;      /* ✅ держим справа */
-          left: auto;       /* сбрасываем левый край */
-          max-width: 75%;   /* ограничиваем ширину, чтобы не растягивалась */
-          font-size: 14px;  /* чуть меньше текст */
-          padding: 8px 10px;
+          .t1 { font-size: 18px; }
+          .badge-price {
+            top: -14px;
+            right: 16px;
+            left: auto;
+            max-width: 75%;
+            font-size: 14px;
+            padding: 8px 10px;
+          }
         }
-      }
       `}</style>
     </Link>
   )

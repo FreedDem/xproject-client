@@ -57,17 +57,28 @@ const headers = (token) => ({
 // ===== Универсальный запрос =====
 async function request(path, opts = {}) {
   const res = await fetch(u(path), opts);
-  const ct = res.headers.get('content-type') || '';
 
+  // Ошибки
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(text || `HTTP ${res.status} on ${path}`);
+    // Попробуем снять JSON, если он есть, иначе текст
+    const ct = res.headers.get('content-type') || '';
+    if (ct.includes('application/json')) {
+      const errJson = await res.json().catch(() => null);
+      throw new Error(errJson?.message || JSON.stringify(errJson) || `HTTP ${res.status} on ${path}`);
+    } else {
+      const text = await res.text().catch(() => '');
+      throw new Error(text || `HTTP ${res.status} on ${path}`);
+    }
   }
 
+  // Успех
+  if (res.status === 204) return null;               // No Content — норм для DELETE
+  const ct = res.headers.get('content-type') || '';
   if (ct.includes('application/json')) return res.json();
 
+  // Если это не JSON и не 204 — вернём текст (если нужен)
   const text = await res.text().catch(() => '');
-  throw new Error(text || 'Не JSON ответ от API');
+  return text || null;
 }
 
 // ===== Auth =====

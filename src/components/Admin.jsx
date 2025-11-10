@@ -139,7 +139,7 @@ export default function Admin() {
     if (!token) return alert("Нет прав: войди как админ");
     if (!confirm(`Удалить тур «${tour.title}»?`)) return;
     try {
-      await deleteTour(tour._id);
+      await deleteTour(tour._id, token);
       await fetchTours();
       setMsg("🗑️ Удалено");
       setTimeout(() => setMsg(null), 2000);
@@ -421,17 +421,17 @@ function TourFormDialog({ token, initial, editId, onClose, onSaved }) {
   };
 
   const onDelete = async (tour) => {
-  if (!token) return alert("Нет прав: войди как админ");
-  if (!confirm(`Удалить тур «${tour.title}»?`)) return;
-  try {
-    await deleteTour(tour._id, token);
-    await fetchTours();
-    setMsg("🗑️ Удалено");
-    setTimeout(() => setMsg(null), 2000);
-  } catch (e) {
-    alert("Ошибка удаления: " + e.message);
-  }
-};
+    if (!token) return alert("Нет прав: войди как админ");
+    if (!confirm(`Удалить тур «${tour.title}»?`)) return;
+    try {
+      await deleteTour(tour._id, token);
+      await fetchTours();
+      setMsg("🗑️ Удалено");
+      setTimeout(() => setMsg(null), 2000);
+    } catch (e) {
+      alert("Ошибка удаления: " + e.message);
+    }
+  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -494,40 +494,105 @@ function TourFormDialog({ token, initial, editId, onClose, onSaved }) {
 
         <form className="form" onSubmit={onSubmit}>
           {/* Основное */}
-          <fieldset>
-            <legend>Основное</legend>
-            <label>
-              Название
-              <input
-                value={form.title}
-                onChange={(e) => setField("title", e.target.value)}
-                required
-              />
-            </label>
-            <label>
-              Slug
-              <input
-                value={form.slug}
-                onChange={(e) => setField("slug", e.target.value)}
-              />
-            </label>
-            <label>
-              Краткое описание
-              <textarea
-                rows={3}
-                value={form.summary}
-                onChange={(e) => setField("summary", e.target.value)}
-              />
-            </label>
-            <label>
-              Полное описание
-              <textarea
-                rows={6}
-                value={form.description}
-                onChange={(e) => setField("description", e.target.value)}
-              />
-            </label>
-          </fieldset>
+<fieldset>
+  <legend>Основное</legend>
+
+  <label>
+    Название
+    <input
+      value={form.title}
+      onChange={(e) => setField("title", e.target.value)}
+      required
+    />
+  </label>
+
+  <label>
+    Slug
+    <input
+      value={form.slug}
+      onChange={(e) => setField("slug", e.target.value)}
+    />
+  </label>
+
+  {/* Новые поля */}
+    <label>
+      Цена от (₽)
+      <input
+        type="number"
+        min="0"
+        step="1"
+        value={
+          form.priceFromRUB === 0 || form.priceFromRUB
+            ? String(form.priceFromRUB)
+            : ""
+        }
+        onChange={(e) =>
+          setField(
+            "priceFromRUB",
+            e.target.value === "" ? 0 : Number(e.target.value)
+          )
+        }
+        placeholder="Например, 45000"
+      />
+    </label>
+
+    <label>
+      Продолжительность (дней)
+      <input
+        type="number"
+        min="0"
+        step="1"
+        value={
+          form.durationDays === 0 || form.durationDays
+            ? String(form.durationDays)
+            : ""
+        }
+        onChange={(e) =>
+          setField(
+            "durationDays",
+            e.target.value === "" ? 0 : Number(e.target.value)
+          )
+        }
+        placeholder="Например, 7"
+      />
+    </label>
+
+    <label>
+      Тип активности
+      <input
+        value={form.activity}
+        onChange={(e) => setField("activity", e.target.value)}
+        placeholder="Треккинг / экскурсии / рафтинг …"
+      />
+    </label>
+
+    <label>
+      Уровень комфорта
+      <input
+        value={form.comfort}
+        onChange={(e) => setField("comfort", e.target.value)}
+        placeholder="Базовый / Средний / Высокий"
+      />
+    </label>
+
+    <label>
+      Краткое описание
+      <textarea
+        rows={3}
+        value={form.summary}
+        onChange={(e) => setField("summary", e.target.value)}
+      />
+    </label>
+
+    <label>
+      Полное описание
+      <textarea
+        rows={6}
+        value={form.description}
+        onChange={(e) => setField("description", e.target.value)}
+      />
+    </label>
+  </fieldset>
 
           {/* Фотографии */}
           <fieldset>

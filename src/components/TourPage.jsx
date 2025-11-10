@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { s3url as withS3 } from '../config'
 import './tourPage.css'
 import TourGallery from './TourGallery'
 import BookingDialog from '../components/BookingDialog'
-import { fetchTours } from '../api' // ✅ как в Home/Tours используем общий API-клиент
+import { fetchTours } from '../api'
 
 /* ===== утилиты ===== */
 const translitMap = { а:'a',б:'b',в:'v',г:'g',д:'d',е:'e',ё:'e',ж:'zh',з:'z',и:'i',й:'y',к:'k',л:'l',м:'m',н:'n',о:'o',п:'p',р:'r',с:'s',т:'t',у:'u',ф:'f',х:'h',ц:'c',ч:'ch',ш:'sh',щ:'sch',ъ:'',ы:'y',ь:'',э:'e',ю:'yu',я:'ya' }
@@ -33,7 +33,7 @@ const stripHtml = (html='') => {
   div.innerHTML = html || ''
   return (div.textContent || '').replace(/\s+/g, ' ').trim()
 }
-const clip = (s='', n=140) => (s.length <= n ? s : s.slice(0, n).replace(/\s[^\s]*$/, '') + '…')
+const clip = (s='', n=110) => (s.length <= n ? s : s.slice(0, n).replace(/\s[^\s]*$/, '') + '…')
 
 /* ===== страница ===== */
 export default function TourPage() {
@@ -43,10 +43,20 @@ export default function TourPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  // модалки
   const [descOpen, setDescOpen] = useState(false)
   const [incOpen, setIncOpen] = useState(false)
   const [excOpen, setExcOpen] = useState(false)
   const [bookingOpen, setBookingOpen] = useState(false)
+
+  // лайтбокс для фото дня
+  const [lb, setLb] = useState({ open: false, list: [], index: 0 })
+  const openLightbox = (list, index=0) => setLb({ open: true, list, index })
+  const closeLightbox = () => setLb({ open: false, list: [], index: 0 })
+  const prevLightbox = () =>
+    setLb(p => ({ ...p, index: (p.index - 1 + p.list.length) % p.list.length }))
+  const nextLightbox = () =>
+    setLb(p => ({ ...p, index: (p.index + 1) % p.list.length }))
 
   useEffect(() => {
     let alive = true
@@ -54,15 +64,10 @@ export default function TourPage() {
       try {
         setLoading(true)
         setError(null)
-
-        // ✅ берём список так же, как на главной/странице всех туров (expand=urls для абсолютных ссылок)
         const items = await fetchTours({ limit: 500, expand: 'urls' })
-
-        // по slug → по slugify(title) → по _id
         const wanted = items.find(x => x?.slug === slug)
           || items.find(x => slugify(x?.title) === slug)
           || items.find(x => x?._id === slug)
-
         if (alive) setTour(wanted || null)
       } catch (e) {
         if (alive) setError(e?.message || 'Ошибка загрузки')
@@ -72,6 +77,12 @@ export default function TourPage() {
     })()
     return () => { alive = false }
   }, [slug])
+
+  /* 🔧 выносим выше ранних return, с безопасной опциональной цепочкой */
+  const gallery = useMemo(
+    () => Array.from(new Set([...(tour?.heroImages || []), ...(tour?.gallery || [])])),
+    [tour]
+  )
 
   if (loading) return <div className="wrap"><p>Загрузка…</p></div>
   if (error || !tour) return (
@@ -84,47 +95,55 @@ export default function TourPage() {
   const price = rub(tour.priceFromRUB)
   const slots = tour.dateSlots || []
   const firstDate = slots[0] ? fmtRange(slots[0]) : ''
-
-  // Склеиваем hero + gallery, убираем дубли
-  const gallery = Array.from(new Set([...(tour.heroImages || []), ...(tour.gallery || [])]))
-  const hasAccommodation = (tour.accommodationText && tour.accommodationText.trim()) || (tour.accommodationImages?.length)
+  const hasAccommodation =
+    (tour.accommodationText && tour.accommodationText.trim()) ||
+    (tour.accommodationImages?.length)
 
   return (
     <div className="tourp">
-      {/* ===== ГАЛЕРЕЯ СВЕРХУ (в пределах .wrap) ===== */}
+      {/* ===== ГАЛЕРЕЯ СВЕРХУ ===== */}
       <div className="wrap">
         <TourGallery gallery={gallery} />
       </div>
 
       <div className="wrap">
-        {/* ===== Основной контент ===== */}
-
-        {/* Заголовок и краткие параметры */}
+        {/* Заголовок и параметры */}
         <section className="tourHeader">
           <h1 className="tourTitle">{tour.title}</h1>
           <div className="tags">
-            {tour.durationDays ? <span>{tour.durationDays} дней</span> : null}
-            {tour.language ? <span>{tour.language}</span> : null}
-            {tour.activity ? <span>{tour.activity}</span> : null}
-            {tour.comfort ? <span>{tour.comfort}</span> : null}
-            {firstDate ? <span>{firstDate}</span> : null}
+            {tour.durationDays ? <span><b>Длительность:</b> {tour.durationDays} дней</span> : null}
+            {tour.language ?     <span><b>Язык:</b> {tour.language}</span> : null}
+            {tour.comfort ?      <span><b>Комфорт:</b> {tour.comfort}</span> : null}
+            {tour.activity ?     <span><b>Активность:</b> {tour.activity}</span> : null}
+            {firstDate ?         <span><b>Ближайшая дата:</b> {firstDate}</span> : null}
           </div>
         </section>
 
-        {/* Бронирование: цена + ВСЕ даты + кнопка */}
+        {/* Бронирование: цена + даты + кнопка */}
         <div className="bookRow">
           <span className="priceTag">{price}</span>
 
           {slots.length > 0 && (
             <div className="dateChips" aria-label="Доступные даты">
-              {slots.map((s, i) => (
-                <span className={`dateChip${Number(s.seatsAvailable) > 0 && Number(s.seatsAvailable) <= 3 ? ' low' : ''}`} key={i}>
-                  <span className="rng">{fmtRange(s)}</span>
-                  {Number(s.seatsAvailable) > 0 && (
-                    <span className="seats">мест: {s.seatsAvailable}</span>
-                  )}
-                </span>
-              ))}
+              {slots.map((s, i) => {
+                const seats = Number(s.seatsAvailable ?? 0)
+                const low = seats > 0 && seats <= 3
+                const soldout = seats === 0
+                return (
+                  <span
+                    className={`dateChip${low ? ' low' : ''}${soldout ? ' soldout' : ''}`}
+                    key={i}
+                    title={soldout ? 'Нет мест' : seats ? `Свободных мест: ${seats}` : ''}
+                  >
+                    <span className="rng">{fmtRange(s)}</span>
+                    {soldout ? (
+                      <span className="seats">Нет мест</span>
+                    ) : seats > 0 ? (
+                      <span className="seats">мест: {seats}</span>
+                    ) : null}
+                  </span>
+                )
+              })}
             </div>
           )}
 
@@ -153,22 +172,30 @@ export default function TourPage() {
           <section className="card">
             <h2>Программа по дням</h2>
             <div className="acc">
-              {tour.itinerary.map(d=>{
+              {tour.itinerary.map(d => {
                 const preview = clip(stripHtml(d.details||''), 110)
+                const dayPhotos = (d.photos || []).map(k => withS3(k))
                 return (
                   <details className="accItem" key={d.day}>
                     <summary>
-                      <span className="dnum">День {d.day}</span>
+                      {/* неразрывный пробел между словом и цифрой */}
+                      <span className="dnum">{`День\u00A0${d.day}`}</span>
                       <span className="dttl">{d.title}</span>
                       <span className="prev">{preview}</span>
                     </summary>
                     <div className="dhtml" dangerouslySetInnerHTML={{__html: d.details || ''}}/>
-                    {d.photos?.length ? (
+                    {dayPhotos.length ? (
                       <div className="thumbGrid" style={{padding:'0 12px 12px'}}>
-                        {d.photos.map((p, i) => (
-                          <div className="thumb" key={i}>
-                            <img src={withS3(p)} alt="" />
-                          </div>
+                        {dayPhotos.map((url, i) => (
+                          <button
+                            type="button"
+                            className="thumb asBtn"
+                            key={i}
+                            onClick={() => openLightbox(dayPhotos, i)}
+                            aria-label={`Открыть фото ${i+1}`}
+                          >
+                            <img src={url} alt="" />
+                          </button>
                         ))}
                       </div>
                     ) : null}
@@ -183,14 +210,23 @@ export default function TourPage() {
         {hasAccommodation ? (
           <section className="card">
             <h2>Где мы будем жить</h2>
-            {tour.accommodationText ? (<p className="lead">{tour.accommodationText}</p>) : null}
+            {tour.accommodationText ? (<p className="lead text-pre">{tour.accommodationText}</p>) : null}
             {tour.accommodationImages?.length ? (
               <div className="thumbGrid" style={{marginTop:8}}>
-                {tour.accommodationImages.map((k,i)=>(
-                  <div key={i} className="thumb">
-                    <img src={withS3(k)} alt="" />
-                  </div>
-                ))}
+                {tour.accommodationImages.map((k,i)=>{
+                  const url = withS3(k)
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      className="thumb asBtn"
+                      onClick={() => openLightbox(tour.accommodationImages.map(withS3), i)}
+                      aria-label={`Открыть фото проживания ${i+1}`}
+                    >
+                      <img src={url} alt="" />
+                    </button>
+                  )
+                })}
               </div>
             ) : null}
           </section>
@@ -212,61 +248,41 @@ export default function TourPage() {
             <h2>Условия</h2>
             {tour.paymentTerms ? (
               <>
-                <h3>Оплата</h3>
-                <p className="lead">{tour.paymentTerms}</p>
+                <h3>Оплаты</h3>
+                <p className="lead text-pre">{tour.paymentTerms}</p>
               </>
             ) : null}
             {tour.cancellationPolicy ? (
               <>
-                <h3>Отмена</h3>
-                <p className="lead">{tour.cancellationPolicy}</p>
+                <h3>Отмены</h3>
+                <p className="lead text-pre">{tour.cancellationPolicy}</p>
               </>
             ) : null}
             {tour.importantInfo ? (
               <>
                 <h3>Важно знать</h3>
-                <p className="lead">{tour.importantInfo}</p>
+                <p className="lead text-pre">{tour.importantInfo}</p>
               </>
             ) : null}
             {tour.faq ? (
               <>
                 <h3>FAQ</h3>
-                <p className="lead">{tour.faq}</p>
+                <p className="lead text-pre">{tour.faq}</p>
               </>
             ) : null}
           </section>
         )}
-
-        {/* Что включено */}
-        {tour.includes?.length ? (
-          <section className="card listWide">
-            <h3>Что включено</h3>
-            <ul className="list">
-              {(incOpen ? tour.includes : tour.includes.slice(0,8)).map((x,i)=><li key={i}>{x}</li>)}
-            </ul>
-            {tour.includes.length > 8 && (
-              <button className="linkBtn" type="button" onClick={()=>setIncOpen(v=>!v)}>
-                {incOpen ? 'Свернуть' : 'Показать полностью'}
-              </button>
-            )}
-          </section>
-        ) : null}
-
-        {/* Что не включено */}
-        {tour.excludes?.length ? (
-          <section className="card listWide">
-            <h3>Что не включено</h3>
-            <ul className="list">
-              {(excOpen ? tour.excludes : tour.excludes.slice(0,8)).map((x,i)=><li key={i}>{x}</li>)}
-            </ul>
-            {tour.excludes.length > 8 && (
-              <button className="linkBtn" type="button" onClick={()=>setExcOpen(v=>!v)}>
-                {excOpen ? 'Свернуть' : 'Показать полностью'}
-              </button>
-            )}
-          </section>
-        ) : null}
       </div>
+
+      {/* ===== Лайтбокс (простая модалка) ===== */}
+      {lb.open && (
+        <div className="lightbox" onClick={closeLightbox}>
+          <button className="lb-close" type="button" onClick={closeLightbox} aria-label="Закрыть">×</button>
+          <button className="lb-nav left"  type="button" onClick={(e)=>{e.stopPropagation();prevLightbox()}} aria-label="Предыдущее">‹</button>
+          <img className="lb-img" src={lb.list[lb.index]} alt="" onClick={(e)=>e.stopPropagation()} />
+          <button className="lb-nav right" type="button" onClick={(e)=>{e.stopPropagation();nextLightbox()}} aria-label="Следующее">›</button>
+        </div>
+      )}
 
       {/* Модалка бронирования */}
       <BookingDialog

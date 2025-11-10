@@ -27,6 +27,9 @@
 .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
 .ph{color:#97a1c0;display:flex;align-items:center;justify-content:center}
 
+/* кликабельные превью под лайтбокс */
+.thumb.asBtn{border:0;padding:0;background:transparent;cursor:zoom-in;}
+
 /* booking card */
 .bookCard{
   position: static;          /* было: sticky */
@@ -42,7 +45,21 @@
   margin: 12px 0 18px;       /* немного воздуха сверху/снизу */
 }
 
-.btnPrimary{ width:100%; padding:12px 14px; border:0; border-radius:10px; background:var(--brand); color:#fff; font-weight:700; cursor:not-allowed; margin-bottom:8px; }
+.btnPrimary{
+  width:100%;
+  padding:12px 14px;
+  border:0;
+  border-radius:10px;
+  background:var(--brand);
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+  margin-bottom:8px;
+  transition:background .25s ease, transform .05s ease;
+}
+.btnPrimary:hover:not(:disabled){ background:var(--brand-ink); }
+.btnPrimary:active:not(:disabled){ transform:translateY(1px); }
+.btnPrimary:disabled{ opacity:.6; cursor:not-allowed; }
 .btnSecondary{ display:inline-block; text-align:center; padding:10px 12px; border:1px solid var(--line); border-radius:10px; color:var(--ink); text-decoration:none; }
 
 /* cards / sections */
@@ -56,7 +73,7 @@ h2{margin:0 0 8px;}
 .accItem{border:1px solid #ececf4;border-radius:10px;margin:10px 0;}
 .accItem summary{cursor:pointer;display:flex;gap:10px;align-items:center;padding:10px;font-weight:700;list-style:none;}
 .accItem summary::-webkit-details-marker{display:none;}
-.accItem .dnum{color:var(--brand)}
+.accItem .dnum{color:var(--brand);white-space:nowrap;} /* неразрывный “День N” */
 .accItem .dttl{font-weight:700}
 .accItem .prev{margin-left:auto;color:var(--muted);font-weight:500;max-width:48%;text-align:right;}
 .accItem[open] .prev{display:none;}
@@ -180,6 +197,9 @@ h2{margin:0 0 8px;}
 .dateChip .rng{color:#111; font-weight:700}
 .dateChip .seats{color:var(--muted); font-weight:800}
 .dateChip.low .seats{color:#B91C1C}
+/* sold out стиль */
+.dateChip.soldout{opacity:.75;background:#f1f2f6;color:#7a7f8c;}
+.dateChip.soldout .seats{color:#B91C1C;font-weight:800;}
 
 /* На узких экранах даты на отдельной строке */
 @media (max-width: 600px){
@@ -278,3 +298,24 @@ h2{margin:0 0 8px;}
   .modalCard .btnPrimary,
   .modalCard .btnSecondary{ flex: 1 1 0; text-align: center; }
 }
+
+/* ===== Лайтбокс для фото ===== */
+.lightbox{
+  position:fixed; inset:0; background:rgba(0,0,0,.9);
+  display:flex; align-items:center; justify-content:center; z-index:9999;
+}
+.lb-img{max-width:92vw;max-height:88vh;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.5);}
+.lb-close{
+  position:fixed; top:16px; right:16px; width:40px; height:40px; border-radius:999px;
+  background:rgba(255,255,255,.15); color:#fff; border:0; font-size:26px; line-height:1; cursor:pointer;
+}
+.lb-nav{
+  position:fixed; top:50%; transform:translateY(-50%);
+  width:48px; height:48px; border-radius:999px; border:0;
+  background:rgba(255,255,255,.15); color:#fff; font-size:32px; cursor:pointer;
+}
+.lb-nav.left{left:16px;}
+.lb-nav.right{right:16px;}
+.lb-nav:hover,.lb-close:hover{background:rgba(255,255,255,.25);}
+
+.text-pre { white-space: pre-line; }
